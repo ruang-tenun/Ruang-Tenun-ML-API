@@ -51,10 +51,10 @@ def hello():
 def upload():
     if request.method == 'POST':
         # Get the file from post request
-        file = request.files['file']
+        image = request.files['image']
 
         # Make prediction
-        preds = model_predict(file, model)
+        preds = model_predict(image, model)
 
         # Assuming preds is a 2D array of shape (1, num_classes)
         # Get the index of the highest probability class
