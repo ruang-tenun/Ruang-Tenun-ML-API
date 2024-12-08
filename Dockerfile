@@ -8,6 +8,6 @@ RUN pip install -r requirements.txt
 
 COPY . /app/
 
-EXPOSE 5000
+EXPOSE 8080
 
-CMD ["python3", "app.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]

@@ -1,5 +1,6 @@
-import os
 import numpy as np
+import uuid
+from datetime import datetime
 
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
@@ -7,17 +8,13 @@ from tensorflow.keras.preprocessing import image
 from flask import Flask, request, jsonify
 from io import BytesIO
 
-# Define a Flask app
 app = Flask(__name__)
 
-# Model saved with Keras model.save()
 MODEL_PATH = 'models/model.h5'
 
-# Load your trained model
 model = load_model(MODEL_PATH)
 
-# Define a mapping of class indices to human-readable labels
-class_labels = [
+classes = [
     'Endek Bali', 
     'Gringsing Bali', 
     'Ikat Flores', 
@@ -29,19 +26,16 @@ class_labels = [
     'Ulos'
 ]
 
-def model_predict(img_file, model):
+def predictClassification(img_file, model):
     img = image.load_img(BytesIO(img_file.read()), target_size=(150, 150))
 
-    # Preprocessing the image
-    x = image.img_to_array(img)
-    x = np.expand_dims(x, axis=0)
+    img = image.img_to_array(img)
+    img = np.expand_dims(img, axis=0)
 
-    # Be careful how your trained model deals with the input
-    # otherwise, it won't make correct prediction!
-    x = x / 255.0  # Assuming your model expects images to be normalized in this way
+    img = img / 255.0 
 
-    preds = model.predict(x)
-    return preds
+    prediction = model.predict(img)
+    return prediction
 
 @app.route('/')
 def hello():
@@ -50,19 +44,24 @@ def hello():
 @app.route('/predict', methods=['POST'])
 def upload():
     if request.method == 'POST':
-        # Get the file from post request
+        prediction_id = str(uuid.uuid4())
+        created_at = datetime.utcnow().isoformat()
+        
         image_file = request.files['image']
 
-        # Make prediction
-        preds = model_predict(image_file, model)
+        prediction = predictClassification(image_file, model)
 
-        # Assuming preds is a 2D array of shape (1, num_classes)
-        # Get the index of the highest probability class
-        pred_class_index = np.argmax(preds, axis=1)[0]
-        # Map the index to the corresponding label
-        result = class_labels[pred_class_index]
+        class_result = np.argmax(prediction, axis=1)[0]
+        result = classes[class_result]
         
-        return jsonify(result=result)
+        confidence_score = float(np.max(prediction))
+        
+        return jsonify(
+            id=prediction_id, 
+            result=result, 
+            confidence_score=confidence_score,
+            created_at=created_at
+        )
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=8080)
