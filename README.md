@@ -15,8 +15,8 @@ Ruang Tenun Machine Learning API is a tool for automatically detecting, analyzin
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/your-username/your-repository.git
-    cd your-repository
+    git clone https://github.com/ruang-tenun/Ruang-Tenun-ML-API.git
+    cd Ruang-Tenun-ML-API
     ```
 
 2. **Create a virtual environment:**
